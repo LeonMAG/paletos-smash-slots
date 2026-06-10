@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paletos Arcade — Smash Slots (prototipo)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #111;
+        overflow: hidden;
+      }
+      #game {
+        width: 100%;
+        height: 100%;
+      }
+      /* En la máquina final no hay ratón: añadir clase kiosk al body */
+      body.kiosk {
+        cursor: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
