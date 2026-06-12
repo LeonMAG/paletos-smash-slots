@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  FILLER_CHARS,
+  FILLER_KEYS,
   GAME_WIDTH,
   HEAT_THRESHOLD,
   IDLE_TO_ATTRACT_MS,
@@ -14,6 +14,18 @@ import { pick } from '../core/rng';
 import { ScatterDirector } from '../core/scatterDirector';
 import { computeSpin, SpinKind, SpinOutcome } from '../core/slotEngine';
 import { onAction } from '../input';
+import {
+  bodyStyle,
+  displayCleanStyle,
+  displayStyle,
+  HEX,
+  INK,
+  monoStyle,
+  PAPER,
+  RED,
+  RED_BRIGHT,
+  YELLOW,
+} from '../theme';
 import { Reel, ReelColumn } from '../ui/Reel';
 
 type GameState = 'ready' | 'spinning' | 'result';
@@ -22,10 +34,10 @@ const CX = GAME_WIDTH / 2;
 const REELS_Y = 330;
 
 const TIER_COLORS: Record<PrizeTier, string> = {
-  nada: '#9aa0a6',
-  pequeno: '#7ad97a',
-  medio: '#6fd2ff',
-  gordo: '#ffd54a',
+  nada: HEX.grey500,
+  pequeno: HEX.paper,
+  medio: HEX.yellow,
+  gordo: HEX.redBright,
 };
 
 interface SmashBits {
@@ -71,6 +83,7 @@ export class GameScene extends Phaser.Scene {
     this.smashOpen = false;
     this.smashHit = false;
     this.smashBits = null;
+    this.reels = [];
     this.director = new ScatterDirector();
 
     this.buildLayout();
@@ -86,22 +99,25 @@ export class GameScene extends Phaser.Scene {
 
   private buildLayout(): void {
     this.add
-      .text(CX, 28, '🍔 PALETOS ARCADE · SMASH SLOTS', { fontSize: '20px', color: '#6b6b75' })
+      .text(CX, 28, '★ PALETOS ARCADE · SMASH SLOTS ★', monoStyle(17, HEX.grey500))
       .setOrigin(0.5);
 
-    // marco de los rodillos
-    const panel = this.add.graphics();
-    panel.fillStyle(0x1b1b21, 1);
-    panel.fillRoundedRect(290, 75, 700, 510, 22);
-    panel.fillStyle(0x26262e, 1);
-    panel.fillRect(320, REELS_Y - 75, 640, 150);
-    panel.lineStyle(3, 0x3c3c46, 1);
-    panel.strokeRoundedRect(290, 75, 700, 510, 22);
+    // marco de los rodillos: panel de papel con sombra stamp roja, sin
+    // esquinas redondeadas — lenguaje del Design System
+    this.add.rectangle(CX + 10, REELS_Y + 10, 700, 510, RED);
+    this.add.rectangle(CX, REELS_Y, 700, 510, PAPER).setStrokeStyle(4, INK);
+
+    // banda de la línea de premio en mostaza + filos de tinta
+    this.add.rectangle(CX, REELS_Y, 640, 150, YELLOW, 0.35);
+    const bandLines = this.add.graphics();
+    bandLines.lineStyle(2, INK, 0.55);
+    bandLines.lineBetween(320, REELS_Y - 75, 960, REELS_Y - 75);
+    bandLines.lineBetween(320, REELS_Y + 75, 960, REELS_Y + 75);
 
     // halos: el general (scatter) y el del tercer rodillo (anticipación)
-    this.glowRect = this.add.rectangle(CX, REELS_Y, 720, 530, 0xffc83d, 1).setAlpha(0);
+    this.glowRect = this.add.rectangle(CX, REELS_Y, 720, 530, YELLOW, 1).setAlpha(0);
     this.antGlow = this.add
-      .rectangle(CX + REELS.spacing, REELS_Y, REELS.width + 14, 470, 0xffd54a, 1)
+      .rectangle(CX + REELS.spacing, REELS_Y, REELS.width + 14, 470, YELLOW, 1)
       .setAlpha(0)
       .setVisible(false);
 
@@ -114,15 +130,11 @@ export class GameScene extends Phaser.Scene {
     const mask = maskShape.createGeometryMask();
     this.reels.forEach((r) => r.container.setMask(mask));
 
-    // línea de premio
-    const arrowL = this.add
-      .text(303, REELS_Y, '▶', { fontSize: '30px', color: '#ffd54a' })
-      .setOrigin(0.5);
-    const arrowR = this.add
-      .text(977, REELS_Y, '◀', { fontSize: '30px', color: '#ffd54a' })
-      .setOrigin(0.5);
+    // marcadores de la línea de premio: la ★ de la marca
+    const starL = this.add.text(302, REELS_Y, '★', bodyStyle(26, HEX.red)).setOrigin(0.5);
+    const starR = this.add.text(978, REELS_Y, '★', bodyStyle(26, HEX.red)).setOrigin(0.5);
     this.tweens.add({
-      targets: [arrowL, arrowR],
+      targets: [starL, starR],
       alpha: 0.35,
       duration: 700,
       yoyo: true,
@@ -130,20 +142,19 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.headline = this.add
-      .text(CX, 600, '', { fontSize: '30px', color: '#ffffff', fontStyle: 'bold' })
+      .text(CX, 600, '', displayCleanStyle(28, HEX.paper))
       .setOrigin(0.5);
     this.prizeBanner = this.add
-      .text(CX, 646, '', { fontSize: '44px', color: '#ffffff', fontStyle: 'bold' })
+      .text(CX, 648, '', displayStyle(44, HEX.paper))
       .setOrigin(0.5);
-    this.hintText = this.add
-      .text(CX, 694, '', { fontSize: '21px', color: '#8a8a94' })
-      .setOrigin(0.5);
+    this.hintText = this.add.text(CX, 696, '', bodyStyle(18, HEX.grey500)).setOrigin(0.5);
+    this.hintText.setLetterSpacing(2);
 
     this.counterText = this.add
-      .text(18, 700, '', { fontSize: '17px', color: '#5d5d66' })
+      .text(18, 700, '', monoStyle(15, HEX.grey500))
       .setOrigin(0, 0.5);
     this.heatText = this.add
-      .text(1262, 700, '', { fontSize: '19px', color: '#ffd54a' })
+      .text(1262, 700, '', monoStyle(17, HEX.yellow))
       .setOrigin(1, 0.5)
       .setVisible(false);
     this.tweens.add({
@@ -169,7 +180,7 @@ export class GameScene extends Phaser.Scene {
         gravityY: 750,
         lifespan: { min: 900, max: 1500 },
         scale: { start: 0.9, end: 0.15 },
-        tint: [0xffd54a, 0xff5544, 0x7ddcff, 0xffffff],
+        tint: [YELLOW, RED, PAPER, RED_BRIGHT],
         emitting: false,
       })
       .setDepth(15);
@@ -180,7 +191,7 @@ export class GameScene extends Phaser.Scene {
         lifespan: 320,
         scale: { start: 0.55, end: 0 },
         alpha: { start: 0.8, end: 0 },
-        tint: 0xffe9a8,
+        tint: PAPER,
         emitting: false,
       })
       .setDepth(8);
@@ -206,7 +217,7 @@ export class GameScene extends Phaser.Scene {
     this.stateName = 'ready';
     this.headline.setText('');
     this.prizeBanner.setText('');
-    this.hintText.setText('PULSA EL BOTÓN PARA TIRAR').setColor('#8a8a94');
+    this.hintText.setText('PULSA EL BOTÓN PARA TIRAR').setColor(HEX.grey500);
     this.lastActivity = this.time.now;
   }
 
@@ -249,14 +260,12 @@ export class GameScene extends Phaser.Scene {
   private scatterIntro(kind: SpinKind, then: () => void): void {
     const isSuper = kind === 'super';
     sfx.scatterSting(isSuper);
-    this.cameras.main.flash(240, 255, isSuper ? 110 : 205, 50);
+    this.cameras.main.flash(240, 245, isSuper ? 46 : 197, isSuper ? 34 : 24);
 
     const txt = this.add
-      .text(CX, REELS_Y, isSuper ? '🔥 ¡SÚPER SCATTER! 🔥' : '⭐ ¡SCATTER! ⭐', {
-        fontSize: '64px',
-        fontStyle: 'bold',
-        color: isSuper ? '#ff7a3c' : '#ffd54a',
-        stroke: '#101014',
+      .text(CX, REELS_Y, isSuper ? '✶ ¡SÚPER SCATTER! ✶' : '★ ¡SCATTER! ★', {
+        ...displayStyle(58, isSuper ? HEX.redBright : HEX.yellow),
+        stroke: HEX.ink,
         strokeThickness: 10,
       })
       .setOrigin(0.5)
@@ -264,11 +273,11 @@ export class GameScene extends Phaser.Scene {
       .setScale(0.2);
     this.tweens.add({ targets: txt, scale: 1, duration: 280, ease: 'Back.easeOut' });
 
-    this.glowRect.setFillStyle(isSuper ? 0xff5a2a : 0xffc83d, 1);
+    this.glowRect.setFillStyle(isSuper ? RED_BRIGHT : YELLOW, 1);
     this.glowPulse?.stop();
     this.glowPulse = this.tweens.add({
       targets: this.glowRect,
-      alpha: { from: 0.08, to: 0.24 },
+      alpha: { from: 0.1, to: 0.28 },
       duration: 420,
       yoyo: true,
       repeat: -1,
@@ -288,7 +297,7 @@ export class GameScene extends Phaser.Scene {
 
   private columnFor(i: number): ReelColumn {
     const middle = (this.smashHit ? this.outcome!.middleUpgraded : this.outcome!.middleBase)[i];
-    return [pick(FILLER_CHARS), middle.char, pick(FILLER_CHARS)];
+    return [pick(FILLER_KEYS), middle.id, pick(FILLER_KEYS)];
   }
 
   private stopReel(i: number): void {
@@ -312,7 +321,7 @@ export class GameScene extends Phaser.Scene {
     this.antPulse?.stop();
     this.antPulse = this.tweens.add({
       targets: this.antGlow,
-      alpha: { from: 0.06, to: 0.32 },
+      alpha: { from: 0.08, to: 0.36 },
       duration: 230,
       yoyo: true,
       repeat: -1,
@@ -330,19 +339,18 @@ export class GameScene extends Phaser.Scene {
     this.smashOpen = true;
     sfx.smashCue();
 
-    const dim = this.add.rectangle(CX, 360, GAME_WIDTH, 720, 0x000000, 0.5).setDepth(20);
+    const dim = this.add.rectangle(CX, 360, GAME_WIDTH, 720, INK, 0.62).setDepth(20);
     const txt = this.add
       .text(CX, REELS_Y, '¡SMASH!', {
-        fontSize: '120px',
-        fontStyle: 'bold',
-        color: '#ffd54a',
-        stroke: '#c81e1e',
-        strokeThickness: 12,
+        ...displayStyle(116, HEX.yellow),
+        stroke: HEX.red,
+        strokeThickness: 14,
       })
       .setOrigin(0.5)
       .setDepth(21)
-      .setScale(0.25);
-    this.tweens.add({ targets: txt, scale: 1.08, duration: 130, ease: 'Back.easeOut' });
+      .setScale(0.25)
+      .setAngle(-3);
+    this.tweens.add({ targets: txt, scale: 1.06, duration: 130, ease: 'Back.easeOut' });
 
     const ring = this.add.graphics().setDepth(21);
     const ringState = { r: 170 };
@@ -352,7 +360,7 @@ export class GameScene extends Phaser.Scene {
       duration: windowMs,
       onUpdate: () => {
         ring.clear();
-        ring.lineStyle(9, 0xffd54a, 1);
+        ring.lineStyle(10, YELLOW, 1);
         ring.strokeCircle(CX, REELS_Y, ringState.r);
       },
       onComplete: () => this.resolveSmash(false),
@@ -372,13 +380,13 @@ export class GameScene extends Phaser.Scene {
     if (hit) {
       this.smashHit = true;
       sfx.smashHit();
-      this.cameras.main.flash(170, 255, 213, 74);
+      this.cameras.main.flash(170, 245, 197, 24);
       this.cameras.main.shake(130, 0.005);
       this.confetti.explode(30, CX, REELS_Y);
-      bits.txt.setText('¡SMASH! ✔');
+      bits.txt.setText('¡SMASH! ★');
     } else {
       sfx.smashMiss();
-      bits.txt.setColor('#6f6f78').setText('SMASH…');
+      bits.txt.setColor(HEX.grey500).setText('SMASH…');
     }
 
     this.tweens.add({ targets: bits.dim, alpha: 0, duration: 220 });
@@ -407,9 +415,9 @@ export class GameScene extends Phaser.Scene {
     const nearMiss = tier === 'nada' && o.middleBase[0].id === o.middleBase[1].id;
     const headline =
       o.kind === 'super'
-        ? '🔥 SÚPER SCATTER 🔥'
+        ? '✶ SÚPER SCATTER ✶'
         : o.kind === 'scatter'
-          ? '⭐ SCATTER ⭐'
+          ? '★ SCATTER ★'
           : this.smashHit
             ? '¡SMASH CONSEGUIDO!'
             : tier === 'nada'
@@ -418,7 +426,9 @@ export class GameScene extends Phaser.Scene {
                 : ''
               : '¡PREMIO!';
 
-    this.headline.setText(headline).setColor(o.kind === 'super' ? '#ff7a3c' : '#ffffff');
+    this.headline
+      .setText(headline)
+      .setColor(o.kind === 'super' ? HEX.redBright : o.kind === 'scatter' ? HEX.yellow : HEX.paper);
     this.prizeBanner.setText(prizeLabel(tier)).setColor(TIER_COLORS[tier]).setScale(0.2);
     this.tweens.add({ targets: this.prizeBanner, scale: 1, duration: 240, ease: 'Back.easeOut' });
 
@@ -428,12 +438,12 @@ export class GameScene extends Phaser.Scene {
     } else if (tier === 'medio') {
       this.confetti.explode(60, CX, 220);
       this.cameras.main.shake(150, 0.004);
-      this.cameras.main.flash(130, 130, 210, 255);
+      this.cameras.main.flash(130, 245, 197, 24);
     } else if (tier === 'gordo') {
       this.confetti.explode(140, CX, 200);
       this.time.delayedCall(320, () => this.confetti.explode(90, CX, 180));
       this.cameras.main.shake(260, 0.006);
-      this.cameras.main.flash(220, 255, 213, 74);
+      this.cameras.main.flash(220, 245, 197, 24);
       this.tweens.add({
         targets: this.prizeBanner,
         scale: 1.07,
@@ -445,7 +455,7 @@ export class GameScene extends Phaser.Scene {
 
     this.time.delayedCall(700, () => {
       if (this.stateName === 'result') {
-        this.hintText.setText('PULSA PARA SEGUIR').setColor('#8a8a94');
+        this.hintText.setText('PULSA PARA SEGUIR').setColor(HEX.grey500);
       }
     });
     this.time.delayedCall(RESULT_HOLD_MS[tier], () => {
@@ -458,7 +468,7 @@ export class GameScene extends Phaser.Scene {
     if (r <= HEAT_THRESHOLD) {
       this.heatText
         .setVisible(true)
-        .setText(r <= 4 ? '🔥 ¡BONUS MUY CERCA!' : '⭐ BONUS CERCA');
+        .setText(r <= 4 ? '★ ¡BONUS MUY CERCA! ★' : '★ BONUS CERCA');
     } else {
       this.heatText.setVisible(false);
     }

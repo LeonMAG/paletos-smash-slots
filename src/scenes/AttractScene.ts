@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
-import { FILLER_CHARS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { FILLER_KEYS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { pick, randInt } from '../core/rng';
 import { onAction } from '../input';
+import { bodyStyle, displayStyle, HEX, INK, monoStyle, RED, YELLOW } from '../theme';
+
+const CX = GAME_WIDTH / 2;
 
 // Pantalla de espera de la máquina: invita a jugar hasta que alguien pulsa.
 export class AttractScene extends Phaser.Scene {
@@ -10,74 +13,87 @@ export class AttractScene extends Phaser.Scene {
   }
 
   create(): void {
-    const cx = GAME_WIDTH / 2;
-
-    // comida flotando de fondo
-    for (let i = 0; i < 12; i++) {
-      const e = this.add
-        .text(randInt(60, GAME_WIDTH - 60), randInt(60, GAME_HEIGHT - 60), pick(FILLER_CHARS), {
-          fontSize: `${randInt(40, 70)}px`,
-        })
-        .setOrigin(0.5)
-        .setAlpha(0.14)
-        .setAngle(randInt(-18, 18));
+    // símbolos de comida flotando de fondo, muy sutiles
+    for (let i = 0; i < 10; i++) {
+      const img = this.add
+        .image(randInt(70, GAME_WIDTH - 70), randInt(70, GAME_HEIGHT - 70), pick(FILLER_KEYS))
+        .setScale(randInt(28, 44) / 100)
+        .setAlpha(0.1)
+        .setAngle(randInt(-16, 16));
       this.tweens.add({
-        targets: e,
-        y: e.y + randInt(-44, 44),
-        angle: e.angle + randInt(-10, 10),
-        duration: randInt(2200, 4200),
+        targets: img,
+        y: img.y + randInt(-40, 40),
+        angle: img.angle + randInt(-10, 10),
+        duration: randInt(2400, 4400),
         yoyo: true,
         repeat: -1,
         ease: 'Sine.easeInOut',
       });
     }
 
+    const eyebrow = this.add
+      .text(CX, GAME_HEIGHT * 0.16, '★ PALETOS CLUB ★ ARCADE ★', monoStyle(16, HEX.red))
+      .setOrigin(0.5);
+    eyebrow.setLetterSpacing(5);
+
+    // titular con sombra stamp roja: dos capas de texto desplazadas
+    const titleShadow = this.add
+      .text(CX + 7, GAME_HEIGHT * 0.29 + 7, 'PALETOS ARCADE', displayStyle(88, HEX.red))
+      .setOrigin(0.5);
     const title = this.add
-      .text(cx, GAME_HEIGHT * 0.28, 'PALETOS ARCADE', {
-        fontSize: '76px',
-        color: '#ffcc00',
-        fontStyle: 'bold',
-        stroke: '#101014',
-        strokeThickness: 10,
-      })
+      .text(CX, GAME_HEIGHT * 0.29, 'PALETOS ARCADE', displayStyle(88, HEX.paper))
       .setOrigin(0.5);
     this.tweens.add({
-      targets: title,
-      scale: 1.045,
-      duration: 900,
+      targets: [title, titleShadow],
+      scale: 1.03,
+      duration: 950,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
     });
 
     this.add
-      .text(cx, GAME_HEIGHT * 0.43, '🍔 SMASH SLOTS 🍟', {
-        fontSize: '40px',
-        color: '#ffffff',
-        fontStyle: 'bold',
-      })
+      .text(CX, GAME_HEIGHT * 0.45, 'SMASH SLOTS', displayStyle(46, HEX.yellow))
       .setOrigin(0.5);
 
-    this.add
-      .text(cx, GAME_HEIGHT * 0.54, '⭐ SCATTER · 🔥 SÚPER SCATTER · PREMIOS DE VERDAD', {
-        fontSize: '22px',
-        color: '#8a8a94',
-      })
+    const info = this.add
+      .text(
+        CX,
+        GAME_HEIGHT * 0.56,
+        'SCATTER · SÚPER SCATTER · PREMIOS DE VERDAD',
+        bodyStyle(19, HEX.grey300),
+      )
       .setOrigin(0.5);
+    info.setLetterSpacing(2);
 
-    const cta = this.add
-      .text(cx, GAME_HEIGHT * 0.72, 'PULSA EL BOTÓN PARA JUGAR', {
-        fontSize: '30px',
-        color: '#ff4444',
-        fontStyle: 'bold',
-      })
+    // CTA tipo botón de la marca: caja roja con sombra stamp mostaza
+    const ctaY = GAME_HEIGHT * 0.72;
+    const ctaShadow = this.add.rectangle(CX + 6, ctaY + 6, 470, 76, YELLOW);
+    const ctaBox = this.add.rectangle(CX, ctaY, 470, 76, RED).setStrokeStyle(3, INK);
+    const ctaText = this.add
+      .text(CX, ctaY, 'PULSA EL BOTÓN', bodyStyle(27, HEX.paper))
       .setOrigin(0.5);
+    ctaText.setLetterSpacing(3);
     this.tweens.add({
-      targets: cta,
-      alpha: 0.2,
-      duration: 600,
+      targets: [ctaBox, ctaText, ctaShadow],
+      alpha: 0.45,
+      duration: 620,
       yoyo: true,
       repeat: -1,
+    });
+
+    // marquee inferior, como el ticker de la marca
+    const chunk = 'PULSA Y GANA ★ SMASH SLOTS ★ PREMIOS DE VERDAD ★ ';
+    const marquee = this.add
+      .text(0, GAME_HEIGHT - 26, chunk.repeat(6), monoStyle(17, HEX.yellowDeep))
+      .setOrigin(0, 0.5);
+    const chunkWidth = marquee.width / 6;
+    this.tweens.add({
+      targets: marquee,
+      x: -chunkWidth,
+      duration: 8000,
+      repeat: -1,
+      ease: 'Linear',
     });
 
     onAction(this, () => this.scene.start('game'));

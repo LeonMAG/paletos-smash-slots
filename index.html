@@ -3,18 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Paletos Arcade — Smash Slots (prototipo)</title>
+    <title>Paletos Arcade — Smash Slots</title>
     <link
       rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23D7261E'/><path d='M50 14 L59 42 H89 L65 60 L74 88 L50 70 L26 88 L35 60 L11 42 H41 Z' fill='%23F5C518'/></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap"
     />
     <style>
+      /* Tipografía display de marca (Paletos Club DS) — TTFs embebidos */
+      @font-face {
+        font-family: 'Chunk Five';
+        src: url('fonts/ChunkFive.ttf') format('truetype');
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Chunk Five Print';
+        src: url('fonts/ChunkFivePrint.ttf') format('truetype');
+        font-weight: 400;
+        font-display: swap;
+      }
       html,
       body {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #111;
+        background: #0e0e0e;
         overflow: hidden;
       }
       #game {

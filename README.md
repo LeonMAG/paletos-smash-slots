@@ -2,15 +2,27 @@
 
 Primer juego de la **máquina arcade propia de Paletos** (smash burgers): una tragaperras interactiva donde, además de la suerte, cuenta la habilidad — cuando salta la señal **"¡SMASH!"**, pulsar el botón a tiempo mejora el premio.
 
-> **Estado:** v0.1 — primera versión jugable con placeholders (emoji). El skin final llegará con un Design System diseñado en Claude Design (fase F2).
+> **Estado:** v0.2 — versión jugable con la identidad de **Paletos Club** aplicada (Design System de Claude Design): paleta negro/rojo/papel/mostaza, tipografía Chunk Five, símbolos SVG propios y estética de bordes duros con sombras "stamp".
 
 **Demo:** https://leonmag.github.io/paletos-smash-slots/ (se despliega automáticamente en cada push a `main`)
 
-## Mecánica (v0.1)
+## Mecánica (v0.2)
 
-- **Núcleo tragaperras:** 3 rodillos con símbolos de comida (🍔 🍺 🍟 🥤 🧀 🥓 🌶️). El resultado se decide primero en la tabla de premios (pesos configurables) y los rodillos lo escenifican — control total de las probabilidades desde negocio.
-- **El "smash":** en ~38 % de las tiradas salta la señal **¡SMASH!** con un anillo que se cierra; pulsar dentro de la ventana (350 ms, configurable) sube el premio un nivel. Fallar no penaliza.
-- **⭐ Scatter / 🔥 Súper scatter:** pity timer que dispara un evento cada **38–62 tiradas (media ~50)**; el 20 % de los eventos es súper scatter. El scatter garantiza premio medio o gordo; el súper, el gordo. El contador persiste en `localStorage` (sobrevive a reinicios de la máquina).
+- **Núcleo tragaperras:** 3 rodillos con símbolos SVG propios de la marca (burger, cerveza, patatas, refresco, queso, bacon, chili). El resultado se decide primero en la tabla de premios (pesos configurables) y los rodillos lo escenifican — control total de las probabilidades desde negocio.
+- **El "smash":** en ~15 % de las tiradas salta la señal **¡SMASH!** con un anillo que se cierra; pulsar dentro de la ventana (350 ms, configurable) sube el premio un nivel. Fallar no penaliza.
+- **★ Scatter / ✶ Súper scatter:** pity timer que dispara un evento cada **38–62 tiradas (media ~50)**; el 20 % de los eventos es súper scatter. El scatter garantiza premio medio o gordo; el súper, el gordo. El contador persiste en `localStorage` (sobrevive a reinicios de la máquina).
+
+### Tabla de probabilidades v1 (efectivas, validadas por simulación)
+
+| Nivel | Peso base | Efectiva | Frecuencia |
+|---|---|---|---|
+| Nada | 92,0 % | ~83 % | — |
+| Pequeño | 5,0 % | ~11 % | 1 de cada ~9 |
+| Medio | 2,2 % | ~4 % | 1 de cada ~25 |
+| Gordo | 0,8 % | ~1,6 % | 1 de cada ~60 |
+| **Premio (cualquiera)** | — | **~17 %** | **1 de cada ~6** |
+
+La "efectiva" incluye el efecto del ¡SMASH! (~50 % de acierto asumido) y de los scatters. Todo se ajusta en `src/config.ts` y `src/core/economy.test.ts` valida que la economía no se desvíe.
 - **Anticipación:** si los dos primeros rodillos coinciden, el tercero aguanta un segundo extra con glow — tensión clásica de tragaperras.
 - **Game feel:** rebote en la parada de rodillos, partículas, confeti, shakes de cámara y sonido sintetizado con WebAudio (cero assets).
 - **Un solo input:** todo se controla con un único botón arcade.
