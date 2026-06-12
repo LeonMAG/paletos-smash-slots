@@ -31,8 +31,10 @@ export const HEX = {
   green: '#2F7D3A',
 } as const;
 
-export const FONT_DISPLAY = '"Chunk Five Print", "Chunk Five", Georgia, serif';
-export const FONT_DISPLAY_CLEAN = '"Chunk Five", Georgia, serif';
+// Alfa Slab One primaria — el DS descartó Chunk Five como display activa por
+// glifos acentuados rotos (á, é, ó, ú, ñ); queda solo de fallback.
+export const FONT_DISPLAY = '"Alfa Slab One", "Chunk Five", Georgia, serif';
+export const FONT_DISPLAY_CLEAN = '"Alfa Slab One", "Chunk Five", Georgia, serif';
 export const FONT_BODY = 'Archivo, system-ui, sans-serif';
 export const FONT_MONO = '"Space Mono", Menlo, monospace';
 

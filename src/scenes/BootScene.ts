@@ -42,7 +42,7 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     const fonts = [
-      '400 84px "Chunk Five Print"',
+      '400 84px "Alfa Slab One"',
       '400 44px "Chunk Five"',
       '700 24px Archivo',
       '400 20px "Space Mono"',

@@ -2,7 +2,7 @@
 
 Primer juego de la **máquina arcade propia de Paletos** (smash burgers): una tragaperras interactiva donde, además de la suerte, cuenta la habilidad — cuando salta la señal **"¡SMASH!"**, pulsar el botón a tiempo mejora el premio.
 
-> **Estado:** v0.2 — versión jugable con la identidad de **Paletos Club** aplicada (Design System de Claude Design): paleta negro/rojo/papel/mostaza, tipografía Chunk Five, símbolos SVG propios y estética de bordes duros con sombras "stamp".
+> **Estado:** v0.2.1 — versión jugable con la identidad de **Paletos Club** aplicada (Design System de Claude Design): paleta negro/rojo/papel/mostaza, tipografía Alfa Slab One (Chunk Five de fallback), símbolos SVG propios, bordes scribble hand-drawn y sombras "stamp".
 
 **Demo:** https://leonmag.github.io/paletos-smash-slots/ (se despliega automáticamente en cada push a `main`)
 

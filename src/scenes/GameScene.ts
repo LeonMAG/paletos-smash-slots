@@ -27,6 +27,7 @@ import {
   YELLOW,
 } from '../theme';
 import { Reel, ReelColumn } from '../ui/Reel';
+import { scribbleRectPoints } from '../ui/scribble';
 
 type GameState = 'ready' | 'spinning' | 'result';
 
@@ -102,10 +103,17 @@ export class GameScene extends Phaser.Scene {
       .text(CX, 28, '★ PALETOS ARCADE · SMASH SLOTS ★', monoStyle(17, HEX.grey500))
       .setOrigin(0.5);
 
-    // marco de los rodillos: panel de papel con sombra stamp roja, sin
-    // esquinas redondeadas — lenguaje del Design System
-    this.add.rectangle(CX + 10, REELS_Y + 10, 700, 510, RED);
-    this.add.rectangle(CX, REELS_Y, 700, 510, PAPER).setStrokeStyle(4, INK);
+    // marco de los rodillos: panel de papel con borde scribble (capa
+    // hand-drawn del DS) y sombra stamp roja, sin esquinas redondeadas
+    const panelPts = scribbleRectPoints(700, 510, 11, 3);
+    const panelShadow = this.add.graphics({ x: CX - 350 + 10, y: REELS_Y - 255 + 10 });
+    panelShadow.fillStyle(RED, 1);
+    panelShadow.fillPoints(panelPts, true);
+    const panel = this.add.graphics({ x: CX - 350, y: REELS_Y - 255 });
+    panel.fillStyle(PAPER, 1);
+    panel.fillPoints(panelPts, true);
+    panel.lineStyle(4, INK, 1);
+    panel.strokePoints(panelPts, true, true);
 
     // banda de la línea de premio en mostaza + filos de tinta
     this.add.rectangle(CX, REELS_Y, 640, 150, YELLOW, 0.35);

@@ -3,6 +3,7 @@ import { FILLER_KEYS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { pick, randInt } from '../core/rng';
 import { onAction } from '../input';
 import { bodyStyle, displayStyle, HEX, INK, monoStyle, RED, YELLOW } from '../theme';
+import { scribbleRectPoints } from '../ui/scribble';
 
 const CX = GAME_WIDTH / 2;
 
@@ -66,10 +67,18 @@ export class AttractScene extends Phaser.Scene {
       .setOrigin(0.5);
     info.setLetterSpacing(2);
 
-    // CTA tipo botón de la marca: caja roja con sombra stamp mostaza
+    // CTA tipo botón de la marca: caja roja con borde scribble y sombra
+    // stamp mostaza
     const ctaY = GAME_HEIGHT * 0.72;
-    const ctaShadow = this.add.rectangle(CX + 6, ctaY + 6, 470, 76, YELLOW);
-    const ctaBox = this.add.rectangle(CX, ctaY, 470, 76, RED).setStrokeStyle(3, INK);
+    const ctaPts = scribbleRectPoints(470, 76, 23, 2.2);
+    const ctaShadow = this.add.graphics({ x: CX - 235 + 6, y: ctaY - 38 + 6 });
+    ctaShadow.fillStyle(YELLOW, 1);
+    ctaShadow.fillPoints(ctaPts, true);
+    const ctaBox = this.add.graphics({ x: CX - 235, y: ctaY - 38 });
+    ctaBox.fillStyle(RED, 1);
+    ctaBox.fillPoints(ctaPts, true);
+    ctaBox.lineStyle(3, INK, 1);
+    ctaBox.strokePoints(ctaPts, true, true);
     const ctaText = this.add
       .text(CX, ctaY, 'PULSA EL BOTÓN', bodyStyle(27, HEX.paper))
       .setOrigin(0.5);
