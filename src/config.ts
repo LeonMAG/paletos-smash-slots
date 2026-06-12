@@ -33,6 +33,35 @@ export const SYMBOL_WEIGHTS: Record<string, number> = {
   beer: 10,
   fries: 10,
   burger: 7,
+  // raro a propósito: picotas en ≥3 columnas → tiradas gratis (~1,6 % de tiradas)
+  picota: 1.7,
+};
+
+// La picota se dibuja más grande y sobresale un poco de su celda
+export const SYMBOL_SCALE: Record<string, number> = {
+  picota: 1.24,
+};
+
+// ── Tiradas gratis (picotas) ────────────────────────────────────────────────
+// Picotas en al menos minColumns columnas distintas → count tiradas gratis
+// automáticas y rápidas; el jugador se lleva el MEJOR premio de toda la
+// secuencia (un solo canje). Sin re-trigger dentro de las gratis.
+export const FREE_SPINS = {
+  minColumns: 3,
+  count: 15,
+  autoStopBase: 650,
+  autoStopStagger: 140,
+  betweenSpinsMs: 750,
+};
+
+// ── Smash Final (machacar el botón) ─────────────────────────────────────────
+// Con premio medio o gordo, a veces el premio se presenta UN nivel por debajo
+// y machacar el botón a tiempo "lo sube" al nivel realmente sorteado.
+// Acertar nunca infla la economía (el premio ya estaba ganado); fallar ahorra.
+export const SMASH_FINAL = {
+  chance: 0.6,
+  presses: 8,
+  windowMs: 3500,
 };
 
 // Umbrales de premio por piezas explotadas en total (cascadas incluidas).
@@ -76,6 +105,7 @@ export const SYMBOLS: SymbolDef[] = [
   { id: 'cheese', tier: 'low' },
   { id: 'bacon', tier: 'low' },
   { id: 'chili', tier: 'low' },
+  { id: 'picota', tier: 'low' },
   { id: 'scatter', tier: 'scatter' },
   { id: 'super', tier: 'super' },
 ];
@@ -114,6 +144,11 @@ export function prizeLabel(tier: PrizeTier): string {
 
 export function maxTier(a: PrizeTier, b: PrizeTier): PrizeTier {
   return TIER_LADDER.indexOf(a) >= TIER_LADDER.indexOf(b) ? a : b;
+}
+
+export function tierDown(tier: PrizeTier): PrizeTier {
+  const i = TIER_LADDER.indexOf(tier);
+  return TIER_LADDER[Math.max(i - 1, 0)];
 }
 
 // ── Ritmo de pantallas ──────────────────────────────────────────────────────

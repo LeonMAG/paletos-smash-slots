@@ -59,7 +59,7 @@ export class AttractScene extends Phaser.Scene {
       .text(
         CX,
         608,
-        'CASCADAS · SCATTER · SÚPER SCATTER · PREMIOS DE VERDAD',
+        'CASCADAS · TIRADAS GRATIS · SCATTER · PREMIOS DE VERDAD',
         bodyStyle(25, HEX.grey300),
       )
       .setOrigin(0.5);

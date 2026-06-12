@@ -8,6 +8,7 @@ import burgerUrl from '../assets/symbols/burger.svg';
 import cheeseUrl from '../assets/symbols/cheese.svg';
 import chiliUrl from '../assets/symbols/chili.svg';
 import friesUrl from '../assets/symbols/fries.svg';
+import picotaUrl from '../assets/symbols/picota.svg';
 import sodaUrl from '../assets/symbols/soda.svg';
 import starUrl from '../assets/symbols/star.svg';
 import superstarUrl from '../assets/symbols/superstar.svg';
@@ -20,6 +21,7 @@ const SYMBOL_URLS: Record<string, string> = {
   cheese: cheeseUrl,
   bacon: baconUrl,
   chili: chiliUrl,
+  picota: picotaUrl,
   scatter: starUrl,
   super: superstarUrl,
 };

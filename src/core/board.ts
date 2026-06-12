@@ -2,11 +2,14 @@ import {
   BOARD,
   CLEARED_THRESHOLDS,
   FILLER_KEYS,
+  FREE_SPINS,
   PrizeTier,
   SCATTER,
+  SMASH_FINAL,
   SYMBOL_WEIGHTS,
+  tierDown,
 } from '../config';
-import { randInt, weightedPick } from './rng';
+import { chance, randInt, weightedPick } from './rng';
 
 export type SpinKind = 'normal' | 'scatter' | 'super';
 
@@ -177,4 +180,29 @@ export function tierForCleared(n: number): PrizeTier {
   if (n >= CLEARED_THRESHOLDS.medio) return 'medio';
   if (n >= CLEARED_THRESHOLDS.pequeno) return 'pequeno';
   return 'nada';
+}
+
+// Picotas en al menos FREE_SPINS.minColumns columnas distintas → tiradas gratis
+export function triggersFreeSpins(grid: Grid): boolean {
+  let cols = 0;
+  for (const col of grid) {
+    if (col.includes('picota')) cols++;
+  }
+  return cols >= FREE_SPINS.minColumns;
+}
+
+export interface MashPlan {
+  // lo que se enseña al jugador antes de machacar (un nivel por debajo)
+  shownTier: PrizeTier;
+  // lo realmente sorteado, que se "gana" al completar el smash
+  realTier: PrizeTier;
+}
+
+// El Smash Final solo se ofrece cuando hay nivel inferior que enseñar: el
+// premio real ya está decidido, machacar solo lo revela (fallar lo deja en
+// el nivel mostrado — la economía nunca se infla).
+export function planMash(tier: PrizeTier): MashPlan | null {
+  if (tier !== 'medio' && tier !== 'gordo') return null;
+  if (!chance(SMASH_FINAL.chance)) return null;
+  return { shownTier: tierDown(tier), realTier: tier };
 }

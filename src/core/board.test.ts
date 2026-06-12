@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { BOARD, FILLER_KEYS, SCATTER } from '../config';
-import { findClusters, Grid, injectStars, randomGrid, resolveCascades } from './board';
+import {
+  findClusters,
+  Grid,
+  injectStars,
+  planMash,
+  randomGrid,
+  resolveCascades,
+  triggersFreeSpins,
+} from './board';
 
 // Tablero base sin ningún cluster accidental: ciclo de 7 símbolos en orden
 // column-major (vecinos verticales consecutivos, horizontales a +5 mod 7).
@@ -75,6 +83,46 @@ describe('resolveCascades', () => {
     for (let i = 0; i < 300; i++) {
       const { steps } = resolveCascades(randomGrid());
       expect(steps.length).toBeLessThanOrEqual(BOARD.maxCascades);
+    }
+  });
+});
+
+describe('triggersFreeSpins', () => {
+  it('picotas en 3 columnas distintas disparan; en 2 no; 3 en la misma tampoco', () => {
+    const three = cleanGrid();
+    three[0][0] = 'picota';
+    three[2][3] = 'picota';
+    three[5][1] = 'picota';
+    expect(triggersFreeSpins(three)).toBe(true);
+
+    const two = cleanGrid();
+    two[0][0] = 'picota';
+    two[3][2] = 'picota';
+    expect(triggersFreeSpins(two)).toBe(false);
+
+    const sameCol = cleanGrid();
+    sameCol[1][0] = 'picota';
+    sameCol[1][2] = 'picota';
+    sameCol[1][4] = 'picota';
+    expect(triggersFreeSpins(sameCol)).toBe(false);
+  });
+});
+
+describe('planMash', () => {
+  it('solo se ofrece con medio o gordo, y siempre enseña un nivel menos', () => {
+    for (let i = 0; i < 300; i++) {
+      expect(planMash('nada')).toBeNull();
+      expect(planMash('pequeno')).toBeNull();
+      const m = planMash('medio');
+      if (m) {
+        expect(m.shownTier).toBe('pequeno');
+        expect(m.realTier).toBe('medio');
+      }
+      const g = planMash('gordo');
+      if (g) {
+        expect(g.shownTier).toBe('medio');
+        expect(g.realTier).toBe('gordo');
+      }
     }
   });
 });

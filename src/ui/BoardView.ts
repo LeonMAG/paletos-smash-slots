@@ -1,12 +1,17 @@
 import Phaser from 'phaser';
-import { BOARD } from '../config';
+import { BOARD, SYMBOL_SCALE } from '../config';
 import { CascadeStep, randomSymbol } from '../core/board';
 
 // Las texturas SVG se rasterizan a 512px y se muestran a 138px dentro de la
-// celda de 160 — nítido incluso con reescalado del kiosko.
+// celda de 160 — nítido incluso con reescalado del kiosko. Algunos símbolos
+// (picota) se dibujan más grandes y sobresalen un poco de su celda.
 const TEX_SIZE = 512;
 const SYMBOL_SIZE = 138;
 const BASE_SCALE = SYMBOL_SIZE / TEX_SIZE;
+
+function scaleFor(id: string): number {
+  return BASE_SCALE * (SYMBOL_SCALE[id] ?? 1);
+}
 
 export interface BoardFx {
   pop(x: number, y: number): void;
@@ -31,7 +36,8 @@ export class BoardView {
     for (let c = 0; c < BOARD.cols; c++) {
       const col: Phaser.GameObjects.Image[] = [];
       for (let r = 0; r < BOARD.rows; r++) {
-        col.push(scene.add.image(this.x(c), this.y(r), randomSymbol()).setScale(BASE_SCALE));
+        const key = randomSymbol();
+        col.push(scene.add.image(this.x(c), this.y(r), key).setScale(scaleFor(key)));
       }
       this.sprites.push(col);
       this.spinningCols.push(false);
@@ -64,7 +70,10 @@ export class BoardView {
 
   startSpin(): void {
     for (let c = 0; c < BOARD.cols; c++) this.spinningCols[c] = true;
-    this.sprites.flat().forEach((s) => s.setAlpha(0.85).setScale(BASE_SCALE, BASE_SCALE * 1.12));
+    this.sprites.flat().forEach((s) => {
+      const sc = scaleFor(s.texture.key);
+      s.setAlpha(0.85).setScale(sc, sc * 1.12);
+    });
   }
 
   update(dtMs: number): void {
@@ -75,7 +84,9 @@ export class BoardView {
     for (let c = 0; c < BOARD.cols; c++) {
       if (!this.spinningCols[c]) continue;
       for (let r = 0; r < BOARD.rows; r++) {
-        this.sprites[c][r].setTexture(randomSymbol());
+        const key = randomSymbol();
+        const sc = scaleFor(key);
+        this.sprites[c][r].setTexture(key).setScale(sc, sc * 1.12);
       }
     }
   }
@@ -84,7 +95,7 @@ export class BoardView {
     this.spinningCols[c] = false;
     for (let r = 0; r < BOARD.rows; r++) {
       const s = this.sprites[c][r];
-      s.setTexture(rows[r]).setAlpha(1).setScale(BASE_SCALE);
+      s.setTexture(rows[r]).setAlpha(1).setScale(scaleFor(rows[r]));
       s.y = this.y(r) - 26;
       this.scene.tweens.add({
         targets: s,
@@ -140,7 +151,7 @@ export class BoardView {
       for (const sp of step.spawns) {
         const s = next[sp.col][sp.row];
         this.scene.tweens.killTweensOf(s);
-        s.setTexture(sp.id).setScale(BASE_SCALE).setAlpha(1);
+        s.setTexture(sp.id).setScale(scaleFor(sp.id)).setAlpha(1);
         s.x = this.x(sp.col);
         s.y = this.y(sp.row - (missingByCol.get(sp.col) ?? 1));
         this.scene.tweens.add({
