@@ -2,17 +2,23 @@
 
 Primer juego de la **máquina arcade propia de Paletos** (smash burgers): una tragaperras interactiva donde, además de la suerte, cuenta la habilidad — cuando salta la señal **"¡SMASH!"**, pulsar el botón a tiempo mejora el premio.
 
-> **Estado:** prototipo de viabilidad (F0). Sin arte definitivo: placeholders para perfilar mecánicas y esqueleto de funcionamiento. El skin final llegará con un Design System diseñado en Claude Design (fase F2).
+> **Estado:** v0.1 — primera versión jugable con placeholders (emoji). El skin final llegará con un Design System diseñado en Claude Design (fase F2).
 
-## Mecánica (v0)
+**Demo:** https://leonmag.github.io/paletos-smash-slots/ (se despliega automáticamente en cada push a `main`)
 
-- **Núcleo tragaperras:** 3 rodillos con símbolos de la marca; el botón lanza la tirada y el resultado sale de una tabla de premios con pesos configurables.
-- **El "smash":** durante la tirada aparece una señal visual; acertar la ventana de reacción (~350 ms, configurable) mejora el resultado.
-- **Un solo input:** todo el juego se controla con un único botón arcade.
+## Mecánica (v0.1)
+
+- **Núcleo tragaperras:** 3 rodillos con símbolos de comida (🍔 🍺 🍟 🥤 🧀 🥓 🌶️). El resultado se decide primero en la tabla de premios (pesos configurables) y los rodillos lo escenifican — control total de las probabilidades desde negocio.
+- **El "smash":** en ~38 % de las tiradas salta la señal **¡SMASH!** con un anillo que se cierra; pulsar dentro de la ventana (350 ms, configurable) sube el premio un nivel. Fallar no penaliza.
+- **⭐ Scatter / 🔥 Súper scatter:** pity timer que dispara un evento cada **38–62 tiradas (media ~50)**; el 20 % de los eventos es súper scatter. El scatter garantiza premio medio o gordo; el súper, el gordo. El contador persiste en `localStorage` (sobrevive a reinicios de la máquina).
+- **Anticipación:** si los dos primeros rodillos coinciden, el tercero aguanta un segundo extra con glow — tensión clásica de tragaperras.
+- **Game feel:** rebote en la parada de rodillos, partículas, confeti, shakes de cámara y sonido sintetizado con WebAudio (cero assets).
+- **Un solo input:** todo se controla con un único botón arcade.
 
 ## Stack
 
 - TypeScript + [Vite](https://vitejs.dev/) + [Phaser 3](https://phaser.io/)
+- [Vitest](https://vitest.dev/) para los tests de balanceo del motor
 - Target: Chromium en modo kiosko sobre mini-PC / Raspberry Pi
 - Botón arcade físico vía encoder USB (se lee como teclado)
 
@@ -21,21 +27,31 @@ Primer juego de la **máquina arcade propia de Paletos** (smash burgers): una tr
 ```bash
 npm install
 npm run dev      # servidor de desarrollo
+npm test         # tests del motor (simulan 10k tiradas y validan el pity timer)
 npm run build    # typecheck + build de producción
 ```
 
 **Controles en desarrollo:** `ESPACIO`, `ENTER` o click equivalen al botón arcade.
 
+**Modo demo:** añadir `?demo` a la URL hace que el juego se pulse solo cada 1,4 s — útil como attract de gameplay y para smoke tests.
+
 ## Estructura
 
 ```
 src/
-  config.ts            # parámetros calibrables: ventana de reacción, símbolos, tabla de premios
-  input.ts             # abstracción del botón único (teclado + pointer)
-  main.ts              # arranque de Phaser
+  config.ts                  # TODO lo calibrable: tiempos, pesos, premios, scatter, smash
+  input.ts                   # abstracción del botón único (+ pulsación virtual para demo)
+  main.ts                    # arranque de Phaser y modo demo
+  core/
+    rng.ts                   # azar: picks ponderados, enteros, monedas
+    slotEngine.ts            # resultado de la tirada: premio → símbolos, plan de smash
+    scatterDirector.ts       # pity timer del scatter (~50 tiradas), persistido
+    audio.ts                 # sfx sintetizados con WebAudio (sin assets)
+  ui/
+    Reel.ts                  # rodillo: scroll, parada con rebote
   scenes/
-    AttractScene.ts    # pantalla de espera de la máquina
-    GameScene.ts       # bucle de partida: ready → spin → reacción → resultado
+    AttractScene.ts          # pantalla de espera de la máquina
+    GameScene.ts             # bucle de partida: ready → spin → smash → resultado
 ```
 
 ## Seguimiento del proyecto

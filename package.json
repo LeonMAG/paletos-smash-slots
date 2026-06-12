@@ -1,18 +1,22 @@
 {
   "name": "paletos-smash-slots",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "phaser": "^3.88.2"
   },
   "devDependencies": {
+    "puppeteer-core": "^25.1.0",
     "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^3.2.0"
   }
 }
