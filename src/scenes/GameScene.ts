@@ -77,6 +77,7 @@ export class GameScene extends Phaser.Scene {
   private comboText!: Phaser.GameObjects.Text;
   private counterText!: Phaser.GameObjects.Text;
   private heatText!: Phaser.GameObjects.Text;
+  private nextMarker!: Phaser.GameObjects.Text;
 
   private confetti!: Phaser.GameObjects.Particles.ParticleEmitter;
   private puff!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -173,6 +174,19 @@ export class GameScene extends Phaser.Scene {
     maskShape.fillRect(BOARD_LEFT, BOARD_TOP, BOARD.cols * BOARD.cell, BOARD.rows * BOARD.cell);
     this.board.applyMask(maskShape.createGeometryMask());
 
+    this.nextMarker = this.add
+      .text(0, BOARD_TOP - 24, '▼', bodyStyle(30, HEX.yellow))
+      .setOrigin(0.5)
+      .setVisible(false);
+    this.tweens.add({
+      targets: this.nextMarker,
+      alpha: 0.35,
+      y: BOARD_TOP - 16,
+      duration: 420,
+      yoyo: true,
+      repeat: -1,
+    });
+
     this.comboText = this.add.text(CX, 962, '', monoStyle(21, HEX.grey500)).setOrigin(0.5);
     this.headline = this.add
       .text(CX, 994, '', displayCleanStyle(30, HEX.paper))
@@ -267,11 +281,7 @@ export class GameScene extends Phaser.Scene {
       sfx.spinStart();
       this.board.startSpin();
       this.spinStartAt = this.time.now;
-      for (let c = 0; c < BOARD.cols; c++) {
-        this.time.delayedCall(BOARD.autoStopBase + c * BOARD.autoStopStagger, () =>
-          this.stopColumn(c),
-        );
-      }
+      this.updateNextMarker();
     };
 
     if (kind === 'normal') begin();
@@ -320,13 +330,25 @@ export class GameScene extends Phaser.Scene {
     if (this.stateName !== 'spinning') return;
     if (!this.board.isSpinning(c)) return;
     this.board.stopColumn(c, this.finalGrid[c], () => this.onColumnStopped());
+    this.updateNextMarker();
   }
 
   private onColumnStopped(): void {
     if (this.board.anySpinning) return;
+    this.nextMarker.setVisible(false);
     this.stateName = 'resolving';
     this.hintText.setText('');
     this.time.delayedCall(330, () => this.runCascades());
+  }
+
+  // ▼ sobre la próxima columna que frenará el botón
+  private updateNextMarker(): void {
+    const c = this.board.firstSpinning();
+    if (c >= 0) {
+      this.nextMarker.setVisible(true).setX(this.board.x(c));
+    } else {
+      this.nextMarker.setVisible(false);
+    }
   }
 
   private runCascades(): void {
@@ -439,7 +461,11 @@ export class GameScene extends Phaser.Scene {
         sfx.tick();
       }
     }
-    if (this.stateName === 'ready' && this.time.now - this.lastActivity > IDLE_TO_ATTRACT_MS) {
+    // sin auto-stop, un giro abandonado a medias también debe volver al attract
+    if (
+      (this.stateName === 'ready' || this.stateName === 'spinning') &&
+      this.time.now - this.lastActivity > IDLE_TO_ATTRACT_MS
+    ) {
       this.scene.start('attract');
     }
   }

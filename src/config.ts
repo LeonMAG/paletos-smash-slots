@@ -15,9 +15,8 @@ export const BOARD = {
   minCluster: 4,
   // giro visual: barajado de texturas cada shuffleMs
   shuffleMs: 50,
-  // parada automática de cada columna si el jugador no pulsa
-  autoStopBase: 2600,
-  autoStopStagger: 450,
+  // no hay parada automática: el jugador frena cada columna con un clic.
+  // (Si abandona a mitad, el idle devuelve la máquina al attract.)
   // no se puede frenar una columna antes de este tiempo de giro
   minSpinMs: 350,
   // tope de cascadas por tirada (corta bucles infinitos teóricos)
