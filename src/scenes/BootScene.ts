@@ -36,7 +36,7 @@ export class BootScene extends Phaser.Scene {
       .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'CARGANDO…', monoStyle(20, HEX.grey500))
       .setOrigin(0.5);
     for (const s of SYMBOLS) {
-      this.load.svg(s.id, SYMBOL_URLS[s.id], { width: 256, height: 256 });
+      this.load.svg(s.id, SYMBOL_URLS[s.id], { width: 512, height: 512 });
     }
   }
 

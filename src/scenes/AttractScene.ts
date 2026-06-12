@@ -17,13 +17,13 @@ export class AttractScene extends Phaser.Scene {
     // símbolos de comida flotando de fondo, muy sutiles
     for (let i = 0; i < 10; i++) {
       const img = this.add
-        .image(randInt(70, GAME_WIDTH - 70), randInt(70, GAME_HEIGHT - 70), pick(FILLER_KEYS))
-        .setScale(randInt(28, 44) / 100)
+        .image(randInt(100, GAME_WIDTH - 100), randInt(100, GAME_HEIGHT - 100), pick(FILLER_KEYS))
+        .setScale(randInt(22, 36) / 100)
         .setAlpha(0.1)
         .setAngle(randInt(-16, 16));
       this.tweens.add({
         targets: img,
-        y: img.y + randInt(-40, 40),
+        y: img.y + randInt(-56, 56),
         angle: img.angle + randInt(-10, 10),
         duration: randInt(2400, 4400),
         yoyo: true,
@@ -33,16 +33,16 @@ export class AttractScene extends Phaser.Scene {
     }
 
     const eyebrow = this.add
-      .text(CX, GAME_HEIGHT * 0.16, '★ PALETOS CLUB ★ ARCADE ★', monoStyle(16, HEX.red))
+      .text(CX, 172, '★ PALETOS CLUB ★ ARCADE ★', monoStyle(22, HEX.red))
       .setOrigin(0.5);
-    eyebrow.setLetterSpacing(5);
+    eyebrow.setLetterSpacing(7);
 
     // titular con sombra stamp roja: dos capas de texto desplazadas
     const titleShadow = this.add
-      .text(CX + 7, GAME_HEIGHT * 0.29 + 7, 'PALETOS ARCADE', displayStyle(88, HEX.red))
+      .text(CX + 9, 312 + 9, 'PALETOS ARCADE', displayStyle(122, HEX.red))
       .setOrigin(0.5);
     const title = this.add
-      .text(CX, GAME_HEIGHT * 0.29, 'PALETOS ARCADE', displayStyle(88, HEX.paper))
+      .text(CX, 312, 'PALETOS ARCADE', displayStyle(122, HEX.paper))
       .setOrigin(0.5);
     this.tweens.add({
       targets: [title, titleShadow],
@@ -53,36 +53,34 @@ export class AttractScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    this.add
-      .text(CX, GAME_HEIGHT * 0.45, 'SMASH SLOTS', displayStyle(46, HEX.yellow))
-      .setOrigin(0.5);
+    this.add.text(CX, 488, 'SMASH SLOTS', displayStyle(62, HEX.yellow)).setOrigin(0.5);
 
     const info = this.add
       .text(
         CX,
-        GAME_HEIGHT * 0.56,
-        'SCATTER · SÚPER SCATTER · PREMIOS DE VERDAD',
-        bodyStyle(19, HEX.grey300),
+        608,
+        'CASCADAS · SCATTER · SÚPER SCATTER · PREMIOS DE VERDAD',
+        bodyStyle(25, HEX.grey300),
       )
       .setOrigin(0.5);
-    info.setLetterSpacing(2);
+    info.setLetterSpacing(3);
 
     // CTA tipo botón de la marca: caja roja con borde scribble y sombra
     // stamp mostaza
-    const ctaY = GAME_HEIGHT * 0.72;
-    const ctaPts = scribbleRectPoints(470, 76, 23, 2.2);
-    const ctaShadow = this.add.graphics({ x: CX - 235 + 6, y: ctaY - 38 + 6 });
+    const ctaY = 790;
+    const ctaPts = scribbleRectPoints(640, 100, 23, 2.6);
+    const ctaShadow = this.add.graphics({ x: CX - 320 + 8, y: ctaY - 50 + 8 });
     ctaShadow.fillStyle(YELLOW, 1);
     ctaShadow.fillPoints(ctaPts, true);
-    const ctaBox = this.add.graphics({ x: CX - 235, y: ctaY - 38 });
+    const ctaBox = this.add.graphics({ x: CX - 320, y: ctaY - 50 });
     ctaBox.fillStyle(RED, 1);
     ctaBox.fillPoints(ctaPts, true);
-    ctaBox.lineStyle(3, INK, 1);
+    ctaBox.lineStyle(4, INK, 1);
     ctaBox.strokePoints(ctaPts, true, true);
     const ctaText = this.add
-      .text(CX, ctaY, 'PULSA EL BOTÓN', bodyStyle(27, HEX.paper))
+      .text(CX, ctaY, 'PULSA EL BOTÓN', bodyStyle(36, HEX.paper))
       .setOrigin(0.5);
-    ctaText.setLetterSpacing(3);
+    ctaText.setLetterSpacing(4);
     this.tweens.add({
       targets: [ctaBox, ctaText, ctaShadow],
       alpha: 0.45,
@@ -94,7 +92,7 @@ export class AttractScene extends Phaser.Scene {
     // marquee inferior, como el ticker de la marca
     const chunk = 'PULSA Y GANA ★ SMASH SLOTS ★ PREMIOS DE VERDAD ★ ';
     const marquee = this.add
-      .text(0, GAME_HEIGHT - 26, chunk.repeat(6), monoStyle(17, HEX.yellowDeep))
+      .text(0, GAME_HEIGHT - 36, chunk.repeat(6), monoStyle(24, HEX.yellowDeep))
       .setOrigin(0, 0.5);
     const chunkWidth = marquee.width / 6;
     this.tweens.add({

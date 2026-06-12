@@ -77,6 +77,16 @@ class Sfx {
     this.tone(130, 200, { type: 'sawtooth', gain: 0.06, slideTo: 70 });
   }
 
+  // pop de cluster: sube de tono con cada cascada encadenada
+  pop(level: number): void {
+    this.tone(420 * Math.pow(1.16, Math.min(level, 8)), 95, { type: 'triangle', gain: 0.08 });
+    this.tone(630 * Math.pow(1.16, Math.min(level, 8)), 70, {
+      type: 'square',
+      gain: 0.03,
+      delayMs: 25,
+    });
+  }
+
   scatterSting(isSuper: boolean): void {
     const base = isSuper ? 392 : 330;
     [0, 90, 180, 270].forEach((delayMs, i) => {

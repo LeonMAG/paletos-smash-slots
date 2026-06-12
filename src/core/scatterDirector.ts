@@ -1,6 +1,6 @@
 import { SCATTER } from '../config';
 import { chance, randInt } from './rng';
-import type { SpinKind } from './slotEngine';
+import type { SpinKind } from './board';
 
 // Persistencia mínima para que el pity timer y el contador de tiradas
 // sobrevivan a recargas y apagados de la máquina.

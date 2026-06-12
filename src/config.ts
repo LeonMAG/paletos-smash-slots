@@ -1,43 +1,63 @@
-// Parámetros de juego v0.2. Todo lo calibrable vive aquí para poder ajustar
+// Parámetros de juego v0.3. Todo lo calibrable vive aquí para poder ajustar
 // mecánicas, premios y tiempos sin tocar la lógica de las escenas.
 
-export const GAME_WIDTH = 1280;
-export const GAME_HEIGHT = 720;
+// Resolución de diseño 1080p: nítido en el kiosko y sin el borroso del
+// reescalado que tenía la base 720p.
+export const GAME_WIDTH = 1920;
+export const GAME_HEIGHT = 1080;
 
-// ── Rodillos ────────────────────────────────────────────────────────────────
-export const REELS = {
-  count: 3,
-  symbolH: 150,
-  width: 200,
-  spacing: 215,
-  // velocidad de scroll en px/s durante el giro
-  speed: 2400,
-  // el rodillo i se detiene en stopBase + i * stopStagger (ms desde el inicio)
-  stopBase: 1500,
-  stopStagger: 480,
-  // retardo extra del tercer rodillo cuando hay tensión (dos símbolos iguales)
-  anticipationExtra: 1000,
+// ── Tablero (estilo cluster/cascada) ────────────────────────────────────────
+export const BOARD = {
+  cols: 6,
+  rows: 5,
+  cell: 160,
+  // tamaño mínimo de grupo adyacente (ortogonal, cualquier forma) que explota
+  minCluster: 4,
+  // giro visual: barajado de texturas cada shuffleMs
+  shuffleMs: 50,
+  // parada automática de cada columna si el jugador no pulsa
+  autoStopBase: 2600,
+  autoStopStagger: 450,
+  // no se puede frenar una columna antes de este tiempo de giro
+  minSpinMs: 350,
+  // tope de cascadas por tirada (corta bucles infinitos teóricos)
+  maxCascades: 20,
 };
 
-// ── Mecánica de reacción "¡SMASH!" ──────────────────────────────────────────
-// La señal salta antes de que pare el primer rodillo (maxDelay + windowMs
-// debe ser menor que REELS.stopBase para que el resultado se decida a tiempo).
-export const SMASH = {
-  chance: 0.15,
-  windowMs: 350,
-  minDelay: 450,
-  maxDelay: 1050,
+// Frecuencia de aparición de cada símbolo al rellenar el tablero. Más
+// símbolos distintos / pesos más planos → menos clusters → menos premio.
+export const SYMBOL_WEIGHTS: Record<string, number> = {
+  soda: 13,
+  cheese: 13,
+  bacon: 13,
+  chili: 13,
+  beer: 10,
+  fries: 10,
+  burger: 7,
+};
+
+// Umbrales de premio por piezas explotadas en total (cascadas incluidas).
+// Calibrados por simulación (economy.test.ts) para respetar la tabla de
+// premios; si se toca SYMBOL_WEIGHTS o el tablero, recalibrar.
+// Medido sobre 20k tableros: P(≥8)=16,7 % · P(≥15)=2,6 % · P(≥20)=0,8 %
+export const CLEARED_THRESHOLDS = {
+  pequeno: 8,
+  medio: 15,
+  gordo: 20,
 };
 
 // ── Scatter / súper scatter ─────────────────────────────────────────────────
 // Pity timer: se sortea el próximo evento en [minInterval, maxInterval]
 // tiradas (media ≈ 50). Al disparar, superChance decide si es súper scatter.
+// En el evento se inyecta un grupo conexo de estrellas en el tablero.
 export const SCATTER = {
   minInterval: 38,
   maxInterval: 62,
   superChance: 0.2,
   // probabilidad de que un scatter normal dé el premio gordo (si no, medio)
   scatterGordoChance: 0.15,
+  starsScatter: 5,
+  starsSuper: 8,
 };
 
 // ── Símbolos ────────────────────────────────────────────────────────────────
@@ -61,31 +81,17 @@ export const SYMBOLS: SymbolDef[] = [
   { id: 'super', tier: 'super' },
 ];
 
-export const TOP_SYMBOL = SYMBOLS.find((s) => s.tier === 'top')!;
-export const MID_SYMBOLS = SYMBOLS.filter((s) => s.tier === 'mid');
-export const LOW_SYMBOLS = SYMBOLS.filter((s) => s.tier === 'low');
-export const SCATTER_SYMBOL = SYMBOLS.find((s) => s.tier === 'scatter')!;
-export const SUPER_SYMBOL = SYMBOLS.find((s) => s.tier === 'super')!;
-
-// Relleno visual de los rodillos (filas no premiadas): solo comida, los
-// símbolos especiales únicamente aparecen cuando toca evento.
+// Relleno del tablero: solo comida, los símbolos especiales únicamente
+// aparecen inyectados cuando toca evento.
 export const FILLER_KEYS = SYMBOLS.filter(
   (s) => s.tier === 'low' || s.tier === 'mid' || s.tier === 'top',
 ).map((s) => s.id);
 
-// ── Premios: TABLA DE PROBABILIDADES v1 ─────────────────────────────────────
-// Diseño previo de la economía (etiquetas placeholder; premios reales y ajuste
-// final con negocio). La probabilidad EFECTIVA incluye el efecto del ¡SMASH!
-// (15 % de tiradas, ~50 % de acierto esperado → ~7,5 % de mejoras de nivel)
-// y de los eventos scatter (1 de cada ~50 tiradas). Validada por simulación
-// en src/core/economy.test.ts.
-//
-//   nivel    peso base   efectiva aprox.   frecuencia
-//   nada       92,0 %       ~83 %          —
-//   pequeño     5,0 %       ~11 %          1 de cada ~9
-//   medio       2,2 %        ~4 %          1 de cada ~25
-//   gordo       0,8 %       ~1,6 %         1 de cada ~60 (mayoría vía scatter/súper)
-//   PREMIO (cualquiera)     ~17 %          1 de cada ~6
+// ── Premios ─────────────────────────────────────────────────────────────────
+// La fuente de verdad editable es la base de Notion «🎰 TABLA DE PREMIOS —
+// SMASH SLOTS» (proyecto PALETOS ARCADE). Estos valores son su reflejo en
+// código: pesos objetivo de frecuencia efectiva + etiquetas de pantalla.
+// Al revisar la tabla, sincronizar esto y recalibrar CLEARED_THRESHOLDS.
 export type PrizeTier = 'nada' | 'pequeno' | 'medio' | 'gordo';
 
 export const TIER_LADDER: PrizeTier[] = ['nada', 'pequeno', 'medio', 'gordo'];
@@ -105,6 +111,10 @@ export const PRIZE_TABLE: PrizeDef[] = [
 
 export function prizeLabel(tier: PrizeTier): string {
   return PRIZE_TABLE.find((p) => p.tier === tier)!.label;
+}
+
+export function maxTier(a: PrizeTier, b: PrizeTier): PrizeTier {
+  return TIER_LADDER.indexOf(a) >= TIER_LADDER.indexOf(b) ? a : b;
 }
 
 // ── Ritmo de pantallas ──────────────────────────────────────────────────────
